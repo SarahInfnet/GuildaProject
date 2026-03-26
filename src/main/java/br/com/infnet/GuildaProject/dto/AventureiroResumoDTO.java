@@ -1,7 +1,6 @@
 package br.com.infnet.GuildaProject.dto;
 
 import br.com.infnet.GuildaProject.model.ClasseAventureiro;
-import br.com.infnet.GuildaProject.model.Companheiro;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
