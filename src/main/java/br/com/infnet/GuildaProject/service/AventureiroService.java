@@ -1,112 +1,148 @@
 package br.com.infnet.GuildaProject.service;
 
+import br.com.infnet.GuildaProject.dto.AventureiroPerfilDTO;
+import br.com.infnet.GuildaProject.dto.AventureiroResumoDTO;
+import br.com.infnet.GuildaProject.dto.CompanheiroDTO;
+import br.com.infnet.GuildaProject.dto.RankingDTO;
 import br.com.infnet.GuildaProject.exception.EntityNotFoundException;
-import br.com.infnet.GuildaProject.model.Aventureiro;
-import br.com.infnet.GuildaProject.model.ClasseAventureiro;
-import br.com.infnet.GuildaProject.model.Companheiro;
-import br.com.infnet.GuildaProject.model.EspecieCompanheiro;
+import br.com.infnet.GuildaProject.model.*;
+import br.com.infnet.GuildaProject.repository.AventureiroRepository;
+import br.com.infnet.GuildaProject.repository.OrganizacaoRepository;
+import br.com.infnet.GuildaProject.repository.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import com.github.javafaker.Faker;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
 @Service
 public class AventureiroService {
+    @Autowired
+    private AventureiroRepository aventureiroRepository;
+    @Autowired
+    private OrganizacaoRepository organizacaoRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
-    private final List<Aventureiro> aventureiros = new ArrayList<>();
-
-    public AventureiroService() {
-        Faker faker = new Faker();
-        aventureiros.addAll(initDb(faker));
-
-    }
-    private List<Aventureiro> initDb(Faker faker){
-        return LongStream.rangeClosed(1,100).mapToObj(
-            id -> new Aventureiro(
-                id,
-                faker.name().fullName(),
-                faker.options().option(ClasseAventureiro.values()),
-                faker.number().numberBetween(1,101),
-                faker.bool().bool(),
-                faker.options().option(
-                null,
-                        new Companheiro(
-                            faker.name().fullName(),
-                            faker.options().option(EspecieCompanheiro.values()),
-                            faker.number().numberBetween(0,101)
-                        )
+    public Aventureiro getById(Long id){
+        return aventureiroRepository.findById(id)
+            .orElseThrow(() ->
+                new EntityNotFoundException(
+                        "Aventureiro não encontrado com id " + id
                 )
-
-            )
-        ).toList();
+            );
     }
 
-    public Aventureiro getById(Integer id){
-        if(id < 1 || id > aventureiros.size()){
-            throw new EntityNotFoundException("Recurso não encontrado");
-        }
-        return aventureiros.get(id - 1);
-    }
+    public Aventureiro create(String nome, ClasseAventureiro classe, Integer nivel,
+                              Long organizacaoId, Long usuarioId){
 
-    public Aventureiro create(String nome, ClasseAventureiro classe, Integer nivel){
-        long ultimoId = (long) aventureiros.size();
-        Aventureiro novoAventureiro = new Aventureiro( ultimoId + 1, nome, classe, nivel, true);
-        aventureiros.addLast(novoAventureiro);
-        return novoAventureiro;
-    }
+        Organizacao organizacao = organizacaoRepository.findById(organizacaoId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Organização não encontrada com id " + organizacaoId));
 
-    public List<Aventureiro> listarTodos(){
-        return aventureiros;
-    }
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Usuário não encontrado com id " + usuarioId));
 
-    public List<Aventureiro> paginar(List<Aventureiro> base, int page, int size){
-        int total = base.size();
-        int from = page * size;
-        int to = Math.min(from + size, total);
-        return base.subList(from,to);
-    }
+        Aventureiro novoAventureiro = new Aventureiro();
+        novoAventureiro.setNome(nome);
+        novoAventureiro.setClasse(classe);
+        novoAventureiro.setNivel(nivel);
+        novoAventureiro.setAtivo(true);
+        novoAventureiro.setOrganizacao(organizacao);
+        novoAventureiro.setUsuario(usuario);
+        novoAventureiro.setCreatedAt(LocalDateTime.now());
+        novoAventureiro.setUpdatedAt(LocalDateTime.now());
 
-    public List<Aventureiro> filtrar(ClasseAventureiro classe, Boolean ativo, Integer nivel){
-
-        return aventureiros.stream()
-                .filter(a -> classe == null || a.getClasse() == classe)
-                .filter(a -> ativo == null || a.getAtivo() == ativo)
-                .filter(a -> nivel == null || a.getNivel() >= nivel).toList();
+        return aventureiroRepository.save(novoAventureiro);
 
     }
 
-    public Aventureiro encerrarVinculo(Integer id) {
+    public Page<Aventureiro> filtrar(ClasseAventureiro classe, Boolean ativo,
+                                     Integer nivelMinimo, Pageable pageable) {
+        return aventureiroRepository.findByFiltros(classe, ativo, nivelMinimo, pageable);
+    }
+
+    public Aventureiro encerrarVinculo(Long id) {
         Aventureiro aventureiro = getById(id);
         aventureiro.setAtivo(false);
-        return aventureiro;
+        aventureiro.setUpdatedAt(LocalDateTime.now());
+        return aventureiroRepository.save(aventureiro);
     }
 
-    public Aventureiro recrutarNovamente(Integer id) {
+    public Aventureiro recrutarNovamente(Long id) {
         Aventureiro aventureiro = getById(id);
         aventureiro.setAtivo(true);
-        return aventureiro;
+        aventureiro.setUpdatedAt(LocalDateTime.now());
+        return aventureiroRepository.save(aventureiro);
     }
 
-    public Aventureiro atualizar(Integer id, String nome, ClasseAventureiro classe, Integer nivel) {
+    public Aventureiro atualizar(Long id, String nome, ClasseAventureiro classe, Integer nivel) {
         Aventureiro aventureiro = getById(id);
-
         aventureiro.setNome(nome);
         aventureiro.setClasse(classe);
         aventureiro.setNivel(nivel);
-
-        return aventureiro;
+        aventureiro.setUpdatedAt(LocalDateTime.now());
+        return aventureiroRepository.save(aventureiro);
     }
 
-    public Aventureiro atualizarCompanheiro(Integer id, String nome, EspecieCompanheiro especie, Integer lealdade) {
+    public Aventureiro atualizarCompanheiro(Long id, String nome, EspecieCompanheiro especie, Integer lealdade) {
         Aventureiro aventureiro = getById(id);
-        aventureiro.setCompanheiro(new Companheiro(nome, especie, lealdade));
-        return aventureiro;
+        Companheiro companheiro = new Companheiro();
+        companheiro.setAventureiro(aventureiro);
+        companheiro.setNome(nome);
+        companheiro.setEspecie(especie);
+        companheiro.setLealdade(lealdade);
+
+        aventureiro.setCompanheiro(companheiro);
+        aventureiro.setUpdatedAt(LocalDateTime.now());
+        return aventureiroRepository.save(aventureiro);
     }
 
-    public Aventureiro deletarCompanheiro(Integer id) {
+    public Aventureiro deletarCompanheiro(Long id) {
         Aventureiro aventureiro = getById(id);
         aventureiro.setCompanheiro(null);
-        return aventureiro;
+        aventureiro.setUpdatedAt(LocalDateTime.now());
+        return aventureiroRepository.save(aventureiro);
+    }
+
+    public Page<AventureiroResumoDTO> buscarPorNome(String nome, Pageable pageable) {
+        return aventureiroRepository.findByNomeContaining(nome, pageable)
+            .map(a -> new AventureiroResumoDTO(
+                    a.getId(), a.getNome(), a.getClasse(), a.getNivel(), a.getAtivo()
+            )
+        );
+    }
+
+    public List<RankingDTO> rankearAventureiros(String criterio) {
+        Stream<RankingDTO> aventureiros = aventureiroRepository.findAll().stream()
+                .map(a -> new RankingDTO(
+                a.getNome(),
+                a.getClasse(),
+                a.getNivel(),
+                a.getOrganizacao().getId(),
+                a.getUsuario().getId(),
+                a.getParticipacoes().size(),
+                a.getParticipacoes().stream().map(
+                    p -> p.getRecompensaOuro()
+                ).mapToInt(Integer::intValue).sum(),
+                a.getParticipacoes().stream().filter(p -> p.getMvp()).toList().size()
+            ));
+
+        List<RankingDTO> listaAventureirosRankeados;
+
+        if (criterio.equals("somaRecompensa")){
+            listaAventureirosRankeados = aventureiros.sorted((r1, r2) -> Integer.compare(r2.getSomaRecompensa(), r1.getSomaRecompensa())).toList();
+        }
+        else if (criterio.equals("qtdDestaque")) {
+            listaAventureirosRankeados = aventureiros.sorted((r1, r2) -> Integer.compare(r2.getQtdDestaque(), r1.getQtdDestaque())).toList();
+        }
+        else{
+            listaAventureirosRankeados= aventureiros.sorted((r1, r2) -> Integer.compare(r2.getTotalParticipacoes(), r1.getTotalParticipacoes())).toList();
+        }
+
+        return listaAventureirosRankeados;
     }
 }

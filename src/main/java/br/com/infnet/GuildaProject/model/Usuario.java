@@ -1,6 +1,7 @@
 package br.com.infnet.GuildaProject.model;
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,11 +56,13 @@ public class Usuario {
     @OneToMany(mappedBy = "actorUserId")
     private List<AuditEntries> auditEntries;
 
-
     @OneToMany(mappedBy = "usuario",
     cascade = CascadeType.REMOVE,
     orphanRemoval = true
     )
     @Builder.Default
     private List<UserRole> userRoles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "usuario")
+    private List<Aventureiro> aventureiros;
 }
