@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.List;
 
 public interface MissaoRepository extends JpaRepository<Missao, Long> {
 
@@ -25,7 +25,14 @@ public interface MissaoRepository extends JpaRepository<Missao, Long> {
             Pageable pageable
     );
 
-//    AND (:dataInicio IS NULL OR m.dataInicio >= :dataInicio)
-//    AND (:dataTermino IS NULL OR m.dataTermino <= :dataTermino)
-
+    @Query("""
+    SELECT m FROM Missao m
+    LEFT JOIN FETCH m.participacoes p
+    WHERE m.createdAt >= :dataInicio
+    AND m.createdAt <= :dataFim
+""")
+    List<Missao> findByPeriodo(
+            @Param("dataInicio") LocalDateTime dataInicio,
+            @Param("dataFim") LocalDateTime dataFim
+    );
 }

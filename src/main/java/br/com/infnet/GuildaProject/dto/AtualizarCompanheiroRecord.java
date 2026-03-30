@@ -1,6 +1,4 @@
 package br.com.infnet.GuildaProject.dto;
-
-import br.com.infnet.GuildaProject.model.ClasseAventureiro;
 import br.com.infnet.GuildaProject.model.EspecieCompanheiro;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

@@ -2,7 +2,6 @@ package br.com.infnet.GuildaProject.service;
 import br.com.infnet.GuildaProject.model.Usuario;
 import br.com.infnet.GuildaProject.model.UsuarioStatus;
 import br.com.infnet.GuildaProject.repository.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

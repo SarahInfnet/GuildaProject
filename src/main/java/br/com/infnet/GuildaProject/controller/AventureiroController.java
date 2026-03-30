@@ -2,8 +2,7 @@ package br.com.infnet.GuildaProject.controller;
 
 import br.com.infnet.GuildaProject.dto.*;
 import br.com.infnet.GuildaProject.model.Aventureiro;
-import br.com.infnet.GuildaProject.model.ClasseAventureiro;
-import br.com.infnet.GuildaProject.model.Companheiro;
+import br.com.infnet.GuildaProject.model.StatusMissao;
 import br.com.infnet.GuildaProject.service.AventureiroService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -161,9 +160,14 @@ public class AventureiroController {
     }
 
     @GetMapping("/ranking")
-    public ResponseEntity<List<RankingDTO>> rankearAventureiro(@RequestParam(defaultValue = "totalParticipacoes") String criterio){
+    public ResponseEntity<List<RankingDTO>> rankearAventureiro(
+            @RequestParam(defaultValue = "totalParticipacoes") String criterio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim,
+            @RequestParam(required = false) StatusMissao statusMissao) {
 
-        List<RankingDTO> aventureirosRankeados = aventureiroService.rankearAventureiros(criterio);
+        List<RankingDTO> aventureirosRankeados = aventureiroService.rankearAventureiros(
+                criterio, dataInicio, dataFim, statusMissao);
 
         return ResponseEntity.ok().body(aventureirosRankeados);
     }

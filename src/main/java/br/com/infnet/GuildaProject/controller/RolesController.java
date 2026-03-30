@@ -1,7 +1,6 @@
 package br.com.infnet.GuildaProject.controller;
 import br.com.infnet.GuildaProject.dto.PermissionRecord;
 import br.com.infnet.GuildaProject.dto.RoleRecord;
-import br.com.infnet.GuildaProject.dto.UsuarioRecord;
 import br.com.infnet.GuildaProject.model.Role;
 import br.com.infnet.GuildaProject.service.RoleService;
 import jakarta.validation.constraints.Max;

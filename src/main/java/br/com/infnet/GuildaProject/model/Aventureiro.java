@@ -3,7 +3,6 @@ package br.com.infnet.GuildaProject.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.*;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 

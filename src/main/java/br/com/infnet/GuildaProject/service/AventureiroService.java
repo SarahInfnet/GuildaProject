@@ -1,8 +1,6 @@
 package br.com.infnet.GuildaProject.service;
 
-import br.com.infnet.GuildaProject.dto.AventureiroPerfilDTO;
 import br.com.infnet.GuildaProject.dto.AventureiroResumoDTO;
-import br.com.infnet.GuildaProject.dto.CompanheiroDTO;
 import br.com.infnet.GuildaProject.dto.RankingDTO;
 import br.com.infnet.GuildaProject.exception.EntityNotFoundException;
 import br.com.infnet.GuildaProject.model.*;
@@ -15,7 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Service
 public class AventureiroService {
@@ -116,33 +113,48 @@ public class AventureiroService {
         );
     }
 
-    public List<RankingDTO> rankearAventureiros(String criterio) {
-        Stream<RankingDTO> aventureiros = aventureiroRepository.findAll().stream()
-                .map(a -> new RankingDTO(
-                a.getNome(),
-                a.getClasse(),
-                a.getNivel(),
-                a.getOrganizacao().getId(),
-                a.getUsuario().getId(),
-                a.getParticipacoes().size(),
-                a.getParticipacoes().stream().map(
-                    p -> p.getRecompensaOuro()
-                ).mapToInt(Integer::intValue).sum(),
-                a.getParticipacoes().stream().filter(p -> p.getMvp()).toList().size()
-            ));
+    public List<RankingDTO> rankearAventureiros(String criterio,
+                                                LocalDateTime dataInicio,
+                                                LocalDateTime dataFim,
+                                                StatusMissao statusMissao) {
+        List<RankingDTO> aventureiros = aventureiroRepository.findAll().stream()
+                .map(a -> {
+                    List<ParticipacaoMissao> participacoes = a.getParticipacoes() == null
+                            ? List.of() : a.getParticipacoes();
 
-        List<RankingDTO> listaAventureirosRankeados;
+                    List<ParticipacaoMissao> filtradas = participacoes.stream()
+                            .filter(p -> dataInicio == null || p.getCreatedAt().isAfter(dataInicio))
+                            .filter(p -> dataFim == null || p.getCreatedAt().isBefore(dataFim))
+                            .filter(p -> statusMissao == null || p.getMissao().getStatus() == statusMissao)
+                            .toList();
 
-        if (criterio.equals("somaRecompensa")){
-            listaAventureirosRankeados = aventureiros.sorted((r1, r2) -> Integer.compare(r2.getSomaRecompensa(), r1.getSomaRecompensa())).toList();
-        }
-        else if (criterio.equals("qtdDestaque")) {
-            listaAventureirosRankeados = aventureiros.sorted((r1, r2) -> Integer.compare(r2.getQtdDestaque(), r1.getQtdDestaque())).toList();
-        }
-        else{
-            listaAventureirosRankeados= aventureiros.sorted((r1, r2) -> Integer.compare(r2.getTotalParticipacoes(), r1.getTotalParticipacoes())).toList();
-        }
+                    int somaRecompensa = filtradas.stream()
+                            .mapToInt(p -> p.getRecompensaOuro() != null ? p.getRecompensaOuro() : 0)
+                            .sum();
 
-        return listaAventureirosRankeados;
+                    int qtdDestaque = (int) filtradas.stream()
+                            .filter(p -> Boolean.TRUE.equals(p.getMvp()))
+                            .count();
+
+                    return new RankingDTO(
+                            a.getNome(), a.getClasse(), a.getNivel(),
+                            a.getOrganizacao().getId(), a.getUsuario().getId(),
+                            filtradas.size(), somaRecompensa, qtdDestaque
+                    );
+                }).toList();
+
+        if (criterio.equals("somaRecompensa")) {
+            return aventureiros.stream()
+                    .sorted((r1, r2) -> Integer.compare(r2.getSomaRecompensa(), r1.getSomaRecompensa()))
+                    .toList();
+        } else if (criterio.equals("qtdDestaque")) {
+            return aventureiros.stream()
+                    .sorted((r1, r2) -> Integer.compare(r2.getQtdDestaque(), r1.getQtdDestaque()))
+                    .toList();
+        } else {
+            return aventureiros.stream()
+                    .sorted((r1, r2) -> Integer.compare(r2.getTotalParticipacoes(), r1.getTotalParticipacoes()))
+                    .toList();
+        }
     }
 }

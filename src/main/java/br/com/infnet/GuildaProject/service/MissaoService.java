@@ -1,19 +1,16 @@
 package br.com.infnet.GuildaProject.service;
 
-import br.com.infnet.GuildaProject.dto.FiltroMissaoDTO;
-import br.com.infnet.GuildaProject.dto.MissaoDetalheDTO;
-import br.com.infnet.GuildaProject.dto.MissaoResumoDTO;
-import br.com.infnet.GuildaProject.dto.ParticipanteDTO;
+import br.com.infnet.GuildaProject.dto.*;
 import br.com.infnet.GuildaProject.exception.EntityNotFoundException;
-import br.com.infnet.GuildaProject.model.Aventureiro;
-import br.com.infnet.GuildaProject.model.ClasseAventureiro;
 import br.com.infnet.GuildaProject.model.Missao;
+import br.com.infnet.GuildaProject.model.ParticipacaoMissao;
 import br.com.infnet.GuildaProject.repository.MissaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -59,5 +56,26 @@ public class MissaoService {
                 missao.getDataInicio(), missao.getDataTermino(),
                 participantes
         );
+    }
+
+    public List<RelatorioMissaoDTO> gerarRelatorio(LocalDateTime dataInicio, LocalDateTime dataFim) {
+        return missaoRepository.findByPeriodo(dataInicio, dataFim).stream()
+                .map(m -> {
+                    List<ParticipacaoMissao> participacoes = m.getParticipacoes() == null
+                            ? List.of() : m.getParticipacoes();
+
+                    int totalRecompensas = participacoes.stream()
+                            .mapToInt(p -> p.getRecompensaOuro() != null ? p.getRecompensaOuro() : 0)
+                            .sum();
+
+                    return new RelatorioMissaoDTO(
+                            m.getId(),
+                            m.getTitulo(),
+                            m.getStatus(),
+                            m.getNivelPerigo(),
+                            participacoes.size(),
+                            totalRecompensas
+                    );
+                }).toList();
     }
 }
