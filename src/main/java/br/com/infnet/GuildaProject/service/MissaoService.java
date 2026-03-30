@@ -3,13 +3,16 @@ package br.com.infnet.GuildaProject.service;
 import br.com.infnet.GuildaProject.dto.*;
 import br.com.infnet.GuildaProject.exception.EntityNotFoundException;
 import br.com.infnet.GuildaProject.model.Missao;
+import br.com.infnet.GuildaProject.model.PainelTaticoMissao;
 import br.com.infnet.GuildaProject.model.ParticipacaoMissao;
 import br.com.infnet.GuildaProject.repository.MissaoRepository;
+import br.com.infnet.GuildaProject.repository.PainelTaticoMissaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,6 +21,8 @@ public class MissaoService {
 
     @Autowired
     private MissaoRepository missaoRepository;
+    @Autowired
+    private PainelTaticoMissaoRepository painelTaticoMissaoRepository;
 
     public Page<MissaoResumoDTO> listar(FiltroMissaoDTO filtro, Pageable pageable) {
         return missaoRepository.findByFiltros(
@@ -77,5 +82,13 @@ public class MissaoService {
                             totalRecompensas
                     );
                 }).toList();
+    }
+
+    @Cacheable(cacheNames = "top10", key = "'ultimos15Dias'")
+    public List<PainelTaticoMissao> consultarTop15Dias() {
+        LocalDate quinzeDiasAtras = LocalDateTime.now().minusDays(15).toLocalDate();
+        List<PainelTaticoMissao> painelTaticoMissoes = painelTaticoMissaoRepository.findAll().stream().filter(m -> quinzeDiasAtras.compareTo(m.getUltimaAtualizacao().toLocalDate()) <= 0).toList();
+        painelTaticoMissoes =  painelTaticoMissoes.stream().sorted((p1,p2) -> p2.getIndiceProntidao().compareTo(p1.getIndiceProntidao())).limit(10).toList();
+        return painelTaticoMissoes;
     }
 }

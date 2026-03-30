@@ -1,5 +1,6 @@
 package br.com.infnet.GuildaProject.controller;
 import br.com.infnet.GuildaProject.dto.*;
+import br.com.infnet.GuildaProject.model.PainelTaticoMissao;
 import br.com.infnet.GuildaProject.service.MissaoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -51,5 +52,10 @@ public class MissaoController {
         return ResponseEntity.ok().body(relatorio);
     }
 
+    @GetMapping("/top15dias")
+    public ResponseEntity<List<PainelTaticoMissao>> geraTop15Dias(){
+        List<PainelTaticoMissao> painelTaticoMissoes = missaoService.consultarTop15Dias();
+        return ResponseEntity.ok().body(painelTaticoMissoes);
+    }
 
 }
