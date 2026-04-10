@@ -10,7 +10,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class Missao {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

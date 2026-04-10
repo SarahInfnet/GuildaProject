@@ -6,8 +6,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Immutable
 @Table(name = "vw_painel_tatico_missao", schema = "operacoes")
+@Immutable
 @Getter
 @NoArgsConstructor
 public class PainelTaticoMissao {

@@ -2,6 +2,13 @@ spring:
   application:
     name: GuildaProject
 
+  elasticsearch:
+    uris: http://localhost:9200
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
+
   logging:
     level:
       org.hibernate.tool.schema: DEBUG

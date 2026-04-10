@@ -18,7 +18,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ApiKey {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

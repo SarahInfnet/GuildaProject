@@ -37,8 +37,6 @@ public class MissaoService {
         ));
     }
 
-
-
     public MissaoDetalheDTO getDetalhe(Long id) {
         Missao missao = missaoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -84,6 +82,10 @@ public class MissaoService {
                 }).toList();
     }
 
+    //Para melhorar o desempenho desse endpoint, foi usado @Cacheable do Spring.
+    //Na primeira vez que alguém chamar GET /missao/top15dias, o metodo roda normalmente, busca os dados da view, filtra os últimos 15 dias, ordena e limita a 10.
+    //O resultado fica guardado em memória com a chave "ultimos15Dias". Da segunda chamada em diante, o Spring nem executa o metodo ele devolve direto o que está em memória, sem acessar o banco.
+    //Usei o cache aqui porque a materialized view não muda sempre, então não tem problema servir o mesmo resultado por um tempo. Se os dados precisarem ser atualizados manualmente, daria pra usar @CacheEvict em outro metodo para limpar o cache quando necessário.
     @Cacheable(cacheNames = "top10", key = "'ultimos15Dias'")
     public List<PainelTaticoMissao> consultarTop15Dias() {
         LocalDate quinzeDiasAtras = LocalDateTime.now().minusDays(15).toLocalDate();

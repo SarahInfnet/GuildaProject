@@ -15,7 +15,8 @@ public interface MissaoRepository extends JpaRepository<Missao, Long> {
     SELECT m FROM Missao m
     WHERE (:status IS NULL OR m.status = :status)
     AND (:nivelPerigo IS NULL OR m.nivelPerigo = :nivelPerigo)
-
+    AND (:dataInicio IS NULL OR m.dataInicio >= :dataInicio)
+    AND (:dataTermino IS NULL OR m.dataTermino <= :dataTermino)
 """)
     Page<Missao> findByFiltros(
             @Param("status") StatusMissao status,

@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class AuditEntries {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

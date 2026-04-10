@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class ParticipacaoMissao {
     @EmbeddedId
     private ParticipacaoMissaoId id;
