@@ -32,12 +32,4 @@ public interface AventureiroRepository extends JpaRepository<Aventureiro, Long> 
             Pageable pageable
     );
 
-    @Query("""
-    SELECT a FROM Aventureiro a
-    LEFT JOIN a.participacoes p
-    GROUP BY a
-    ORDER BY COUNT(p) DESC
-""")
-    Page<Aventureiro> findByTotalParticipacoes(Pageable pageable);
-
 }
